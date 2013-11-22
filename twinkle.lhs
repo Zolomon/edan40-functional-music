@@ -86,12 +86,23 @@
 > 
 > makeScale note = map (notes !! ) $ map ((findPos notes note) + ) majorScale
 > startPositionInScale scale chord = findPos (concat $ replicate 3 $ makeScale scale) chord
+
 > makeChordScale scale chord = drop (startPositionInScale scale chord) $ concat $ replicate 3 $ makeScale scale
+
 > getNoteFromScale scale chord pos = head $ (makeChordScale scale chord) !! (pos-1)
 > 
 > mkBass scale chord pos len  = (mapNote (getNoteFromScale scale chord pos)) 4 len v
+
 > zipBass scale chords = zipWith (\chord pos -> mkBass scale chord pos hn) chords [1,5]
+
 > basicBass scale chords = foldr1 (:+:) $ zipBass scale chords
+> 
+> zipCalypso scale chord = map (\pos -> mkBass scale chord pos en) [1,3]
+> calypsoBass scale chords = foldr1 (:+:) (map (\chord -> qnr :+: foldr1 (:+:) (zipCalypso scale chord)) chords)
+> 
+> boogieBass scale chords = foldr1 (:+:) (concat $ map (\chord -> map (\pos -> mkBass scale chord pos en) [1,5,6,5]) chords)
+> -- 
+> -- qnr :+: mkBass scale chord pos en :+: mkBass scale chord pos en :+: qnr :+: mkBass scale chord pos en :+: mkBass scale chord pos en
 > 
 > --basicBass :: PitchClass -> [PitchClass] -> Music
 > --basicBass scale chords = foldr1 (:+:) zipWith (\chord pos -> mkBass scale chord pos hn) chords [1,5]
