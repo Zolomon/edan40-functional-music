@@ -5,6 +5,7 @@
 
 > module TwinkleStar where
 > import Haskore
+> import Data.Maybe
 > 
 > -- note updaters for mappings
 > fd d n = n d v
@@ -50,8 +51,30 @@
 > data BassStyle = Basic | Calypso | Boogie deriving (Show, Eq, Ord)
 > 
 > notes :: [[PitchClass]]
-> notes =  concat $ replicate 3 $ [[Bs,C],[Cs,Df],[D],[Ds,Ef],[E,Ff],[Es,F],[Fs,Gf],[G],[Gs,Af],[A],[As,Bf],[B,Cf]]
+> notes =  concat $ replicate 3 $ [[C,Bs],[Cs,Df],[D],[Ds,Ef],[E,Ff],[Es,F],[Fs,Gf],[G],[Gs,Af],[A],[As,Bf],[B,Cf]]
 > 
+> mapNote n = fromJust $ lookupNote n
+> lookupNote n = lookup n [(Cf, cf)
+>           ,(C,c)
+>           ,(Cs,cs)
+>           ,(Df,df)
+>           ,(D,d)
+>           ,(Ds,ds)
+>           ,(Ef,ef)
+>           ,(E,e)
+>           ,(Es,es)
+>           ,(Ff,ff)
+>           ,(F,f)
+>           ,(Fs,fs)
+>           ,(Gf,gf)
+>           ,(G,g)
+>           ,(Gs,gs)
+>           ,(Af,af)
+>           ,(A,a)
+>           ,(As,as)
+>           ,(Bf,bf)
+>           ,(Bs,bs)]
+>            
 > findPos :: [[PitchClass]] -> PitchClass -> Int
 > findPos list elt = head $ map fst $ filter ((elt `elem`) . snd) $ zip [0..] list
 > 
@@ -64,11 +87,23 @@
 > makeScale note = map (notes !! ) $ map ((findPos notes note) + ) majorScale
 > startPositionInScale scale chord = findPos (concat $ replicate 3 $ makeScale scale) chord
 > makeChordScale scale chord = drop (startPositionInScale scale chord) $ concat $ replicate 3 $ makeScale scale
-> getNoteFromScale scale chord pos = (makeChordScale scale chord) !! (pos-1)
->                               
+> getNoteFromScale scale chord pos = head $ (makeChordScale scale chord) !! (pos-1)
+> 
+> mkBass scale chord pos len  = (mapNote (getNoteFromScale scale chord pos)) 4 len v
+> zipBass scale chords = zipWith (\chord pos -> mkBass scale chord pos hn) chords [1,5]
+> basicBass scale chords = foldr1 (:+:) $ zipBass scale chords
+> 
+> --basicBass :: PitchClass -> [PitchClass] -> Music
+> --basicBass scale chords = foldr1 (:+:) zipWith (\chord pos -> mkBass scale chord pos hn) chords [1,5]
+> --basicBass :: PitchClass -> [PitchClass] -> Music
+> --basicBass scale chord = foldr1 (:+:) $ map (mkBass scale chord hn) [1,5]
+> --basicBass scale chords = 
+>
+> --mkCalypsoBass scale chord = foldr (:+:) $ map (mkBass scale chord en) [1,3]
+> --calypsoBass scale chord = qnr :+: mkCalypsoBass :+: 
 > --endlessPiano :: Key -> Int -> 
-> --endlessPiano 
->  
+> --endlessPiano                                                                                   } 
+>   
 > bassTable :: [(BassStyle, [Music])]
 > bassTable = [(Basic,   (map (fd en) [g 4, g 4, f 4, f 4, e 4, e 4] ))
 >             ,(Calypso, (map (fd en) [c 4, g 4, f 4, f 4, e 4, e 4] ))
