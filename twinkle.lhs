@@ -115,23 +115,24 @@
 > --endlessPiano :: Key -> Int -> 
 > --endlessPiano                                                                                   } 
 >   
-> bassTable :: [(BassStyle, [Music])]
-> bassTable = [(Basic,   (map (fd en) [g 4, g 4, f 4, f 4, e 4, e 4] ))
->             ,(Calypso, (map (fd en) [c 4, g 4, f 4, f 4, e 4, e 4] ))
->             ,(Boogie,  (map (fd en) [g 4, g 4, f 4, f 4, e 4, e 4] ))]
+> bassTable :: [(BassStyle, (PitchClass -> [PitchClass] -> Music))]
+> bassTable = [(Basic,   basicBass)
+>             ,(Calypso, calypsoBass)
+>             ,(Boogie,  boogieBass)]
 > 
-> findToneFromKeyAndCP :: Key -> ChordProgression -> Int -> (Dur -> [NoteAttribute] -> Music)
-> findToneFromKeyAndCP _ _ _ = c 4
+> --findToneFromKeyAndCP :: Key -> ChordProgression -> Int -> (Dur -> [NoteAttribute] -> Music)
+> --findToneFromKeyAndCP _ _ _ = c 4
 > 
-> calypso :: Key -> ChordProgression -> Music
-> calypso key cp = bar :+: bar
->   where bar = qnr :+: fd en (findToneFromKeyAndCP key cp 1)
+> --calypso :: Key -> ChordProgression -> Music
+> --calypso key cp = bar :+: bar
+> --  where bar = qnr :+: fd en (findToneFromKeyAndCP key cp 1)
 > --calypso key cp = bar :+: bar
 > --  where bar = qnr :+: fd en (chordLookup key cp 1) :+: fd en (chordLookup key cp 3)
 > --        chordLookup key cp pos = findToneFromKeyAndCP key cp pos
-> 
-> autoBass :: BassStyle -> Key -> ChordProgression -> Music
-> autoBass _ _ _ = lmap (fd en) [g 4, g 4, f 4, f 4, e 4, e 4] 
+>
+> autoFn style key = (fromJust $ lookup style bassTable) key
+> autoBass :: BassStyle -> PitchClass -> [[PitchClass]] -> Music
+> autoBass style key chords = foldr1 (:+:) $ map (autoFn style key) chords
 > {-
 > 
 > basic = 2/4 Chord,1 :+: 2/4 Chord,5
