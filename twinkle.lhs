@@ -6,6 +6,7 @@
 > module TwinkleStar where
 > import Haskore
 > import Data.Maybe
+> import Data.List
 > 
 > -- note updaters for mappings
 > fd d n = n d v
@@ -52,8 +53,11 @@
 > 
 > notes :: [[PitchClass]]
 > notes =  concat $ replicate 3 $ [[C,Bs],[Cs,Df],[D],[Ds,Ef],[E,Ff],[Es,F],[Fs,Gf],[G],[Gs,Af],[A],[As,Bf],[B,Cf]]
-> 
+>
+> mapNote :: PitchClass -> Octave -> Dur -> [NoteAttribute] -> Music
 > mapNote n = fromJust $ lookupNote n
+> 
+> lookupNote :: PitchClass -> Maybe (Octave -> Dur -> [NoteAttribute] -> Music)
 > lookupNote n = lookup n [(Cf, cf)
 >           ,(C,c)
 >           ,(Cs,cs)
@@ -119,29 +123,50 @@
 > bassTable = [(Basic,   basicBass)
 >             ,(Calypso, calypsoBass)
 >             ,(Boogie,  boogieBass)]
-> 
-> --findToneFromKeyAndCP :: Key -> ChordProgression -> Int -> (Dur -> [NoteAttribute] -> Music)
-> --findToneFromKeyAndCP _ _ _ = c 4
-> 
-> --calypso :: Key -> ChordProgression -> Music
-> --calypso key cp = bar :+: bar
-> --  where bar = qnr :+: fd en (findToneFromKeyAndCP key cp 1)
-> --calypso key cp = bar :+: bar
-> --  where bar = qnr :+: fd en (chordLookup key cp 1) :+: fd en (chordLookup key cp 3)
-> --        chordLookup key cp pos = findToneFromKeyAndCP key cp pos
->
-> autoFn style key = (fromJust $ lookup style bassTable) key
+>             
 > autoBass :: BassStyle -> PitchClass -> [[PitchClass]] -> Music
-> autoBass style key chords = foldr1 (:+:) $ map (autoFn style key) chords
+> autoBass style key chords = foldr1 (:+:) $ map (bassLookup style key) chords
+>   where bassLookup style key = (fromJust $ lookup style bassTable) key
+> 
+> mkChord scale chord = map (getNoteFromScale scale chord) [1, 3, 5]
+> 
+> tuplify [x,y,z] = (x,y,z)
+> 
+> permuts = [(4,4,4),(4,4,5),(4,5,4),(4,5,5),(5,4,4),(5,4,5),(5,5,4),(5,5,5)]
+>
+> mkAllPossibleChords key scale =  map (\x -> mkPermuts (tuplify x) permuts) $ permutations $ mkChord key scale
+> 
+> mkPermuts _ [] = []
+> mkPermuts (x,y,z) ((a,b,c):as) = ((x,a),(y,b),(z,c)) : mkPermuts (x,y,z) as
+>
 > {-
 > 
-> basic = 2/4 Chord,1 :+: 2/4 Chord,5
-> calypso = 1/4 Paus :+: 1/8 Chord,1 :+: 1/8 Chord,3 :+: 1/4 Paus :+: 1/8 Chord,1 :+: 1/8 Chord,3
-> boogie = 1/8 Chord,1 :+:1/8 Chord,5 :+:1/8 Chord,6 :+:1/8 Chord,5 :+:1/8 Chord,1 :+:1/8 Chord,5 :+:1/8 Chord,6 :+:1/8 Chord,5 
+> (C,4) (G,4) => |0-7| = 7
+> (G,4) (G,4) => |7-7| = 0
+> (B,5) (C,4) => |23-0| = 23
 > 
-> basic = [Music] => (basicBass) [makeNote(2/4, 1), makeNote(2/4, 5)] [C, F] => [2/4 C,1,  2/4 F,5] => map (:+:) 
+> [ ((C,4), 0)
+> , ((D,4), 2))]
+> 
 > 
 > -}
+> 
+> lookupDistance :: (PitchClass, Int) -> [(([PitchClass], Int), Int)] -> Maybe Int
+> lookupDistance (_,_) [] = Nothing
+> lookupDistance (note, octave) (x:xs) = if note `elem` (getKeys x) && octave == (getOctave x)
+>                                       then Just (snd x)
+>                                       else lookupDistance (note,octave) xs
+>   where getKeys x = fst $ fst x
+>         getOctave x = snd $ fst x
+> 
+> getPosition key note octave = lookupDistance (note, octave) noteDistances
+>   where genScale key  = concat $ take 2 $ repeat $ makeScale key
+>         values = [0,2,4,5,7,9,11,12,14,16,17,19,21,23]
+>         noteDistances = zipWith (\tuple value -> (tuple, value)) (zipWith (\x y -> (x, y)) (genScale key) $ (take 7 $ repeat 4) ++ (take 7 $ repeat 5)) values
+>         
+> getDistance key (n1,o1) (n2,o2) = abs((fromJust (getPosition key n1 o1)) - (fromJust (getPosition key n2 o2)))
+> 
+>           
 > 
 > -- putting it all together:
 > twinkleStar = Instr "piano" (Tempo 3 (Phrase [Dyn SF] bassLine :=: mainVoice))
