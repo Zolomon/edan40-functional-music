@@ -151,7 +151,7 @@
 > 
 > -}
 > 
-> lookupDistance :: (PitchClass, Int) -> [(([PitchClass], Int), Int)] -> Maybe Int
+> lookupDistance :: (PitchClass, Integer) -> [(([PitchClass], Integer), Integer)] -> Maybe Integer
 > lookupDistance (_,_) [] = Nothing
 > lookupDistance (note, octave) (x:xs) = if note `elem` (getKeys x) && octave == (getOctave x)
 >                                       then Just (snd x)
@@ -166,7 +166,36 @@
 >         
 > getDistance key (n1,o1) (n2,o2) = abs((fromJust (getPosition key n1 o1)) - (fromJust (getPosition key n2 o2)))
 > 
->           
+> toList (x,y,z) = [x,y,z]
+> listOfTriplets key chord = concat $ mkAllPossibleChords key chord
+> triplets key chord = map toList (listOfTriplets key chord)
+> 
+> costOfChords key prevChord chord = zipWith (\newChord value -> (newChord, value))
+>                                    (listOfTriplets key chord)
+>                                    $ map (\listOfValues -> foldr1 (+) listOfValues)
+>                                    $ map (\currentChord -> zipWith (getDistance key) (toList prevChord) currentChord)
+>                                    $ triplets key chord
+> 
+> closestChord [] (y,cost) = y
+> closestChord (x:xs) (y,cost) = if cost < (snd x)
+>                                then closestChord xs (y,cost)
+>                                else closestChord xs x
+> 
+> getChord key prevChord chord = closestChord (listOfChords key prevChord chord) ((listOfChords key prevChord chord) !! 0)
+>   where listOfChords k pc c = (costOfChords k pc c)
+> 
+> 
+> --mkVoiceChord key prevChord chord = getChord key prevChord chord
+> --makeVoicing key prevChord (x:xs) =
+> --  (mkVoiceChord key prevChord xs) :+:  
+>   
+> 
+> 
+> --foldPrev key (x:xs) prevX  =
+> --  closestChord 
+> --  foldPrev key xs x 
+>                                     
+> -- \key -> map (\x -> zipWith (getDistance key) (toList ((C,4),(E,4),(G,5))) x) triplets
 > 
 > -- putting it all together:
 > twinkleStar = Instr "piano" (Tempo 3 (Phrase [Dyn SF] bassLine :=: mainVoice))
