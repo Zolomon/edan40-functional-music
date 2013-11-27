@@ -3,7 +3,7 @@ EDAN40 - Functional Music
 
 Date: 2013-11-27  
 
-###Authors:
+###### Authors:
 
 * Johan Andersson, ada10jan  
 * Bengt Ericsson, ada08ber  
