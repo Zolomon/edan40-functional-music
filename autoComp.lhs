@@ -1,55 +1,20 @@
-\section{Partial Encoding of Chick Corea's ``Children's Song No. 6''}
+\section{AutoComp, a music generator written in Haskell with Haskore}
 \label{chick}
 
 {\small\begin{verbatim}
 
-> module TwinkleStar where
+> module AutoComp where
 > import Haskore
 > import Data.Maybe
 > import Data.List
-> 
-> -- note updaters for mappings
-> fd d n = n d v
-> vol n  = n   v
-> v      = [Volume(80)]
-> lmap f l = line (map f l)
-> 
-> 
-> -- repeat something n times
-> times 1 m = m
-> times n m = m :+: (times (n-1) m)
-> 
-> bassLine = lmap (fd dqn) [b 3]
-> 
-> v1a = lmap (fd en) [c 4, c 4, g 4, g 4, a 4, a 4]
->
-> v1b = lmap vol [g 4 qn]
->
-> v2a = lmap (fd en) [f 4, f 4, e 4, e 4, d 4,d 4]
->
-> v2b = lmap vol [c 4 qn]
->
-> v3a = lmap (fd en) [g 4, g 4, f 4, f 4, e 4, e 4] 
->
-> v3b = lmap vol [d 4 qn]
->
-> v1 = v1a :+: v1b
->
-> v2 = v2a :+: v2b
->
-> v3 = v3a :+: v3b
->
-> mainVoice = v1 :+: v2 :+: v3 :+: v3 :+: v1 :+: v2
-> 
-> --type Key = Haskore.KeyName
->
+
 > type ChordProgression = [Key]
 > 
 > type Note = PitchClass
 > 
 > type Octave = Integer
 > 
-> type AbsNote = (Note, TwinkleStar.Octave)
+> type AbsNote = (Note, AutoComp.Octave)
 >
 > type Cost = Integer
 > 
@@ -58,6 +23,8 @@
 > type TriadChord = (AbsNote, AbsNote, AbsNote)
 > 
 > data BassStyle = Basic | Calypso | Boogie deriving (Show, Eq, Ord)
+> 
+> volume = [Volume(80)]
 > 
 > notes :: [[Note]]
 > notes =  concat $ replicate 3 $ [[C,Bs],[Cs,Df],[D],[Ds,Ef],[E,Ff],[Es,F],[Fs,Gf],[G],[Gs,Af],[A],[As,Bf],[B,Cf]]
@@ -68,25 +35,25 @@
 > lookupNote :: Note -> Maybe (Haskore.Octave -> Dur -> [NoteAttribute] -> Music)
 > lookupNote n = lookup n
 >                [(Cf,cf)
->                ,(C, c)
+>                ,(C, c )
 >                ,(Cs,cs)
 >                ,(Df,df)
->                ,(D, d)
+>                ,(D, d )
 >                ,(Ds,ds)
 >                ,(Ef,ef)
->                ,(E, e)
+>                ,(E, e )
 >                ,(Es,es)
 >                ,(Ff,ff)
->                ,(F, f)
+>                ,(F, f )
 >                ,(Fs,fs)
 >                ,(Gf,gf)
->                ,(G, g)
+>                ,(G, g )
 >                ,(Gs,gs)
 >                ,(Af,af)
->                ,(A, a)
+>                ,(A, a )
 >                ,(As,as)
 >                ,(Bf,bf)
->                ,(B, b)
+>                ,(B, b )
 >                ,(Bs,bs)]
 >            
 > findPos :: [[Note]] -> Note -> Position
@@ -108,11 +75,14 @@
 > getNoteFromScale scale chord pos = head $ (makeChordScale scale chord) !! (pos-1)
 > 
 > mkBass :: Note -> Note -> Position -> Dur -> Music
-> mkBass scale chord pos len  = (mapNote (getNoteFromScale scale chord pos)) 4 len v
+> mkBass scale chord pos len  = (mapNote (getNoteFromScale scale chord pos)) 3 len volume
 > 
 > basicBass :: Note -> [Note] -> Music
 > basicBass scale chords = foldr1 (:+:) $ zipBass scale chords
->   where zipBass scale chords = zipWith (\chord pos -> mkBass scale chord pos qn) chords [1,5]
+>   where zipBass scale [x,y] = if x == y
+>                               then zipWith (\chord pos -> mkBass scale chord pos hn) chords [1,5]
+>                               else zipWith (\chord pos -> mkBass scale chord pos hn) chords [1,1]
+>                                 
 > 
 > calypsoBass :: Note -> [Note] -> Music
 > calypsoBass scale chords = foldr1 (:+:) (map (\chord -> qnr :+: foldr1 (:+:) (zipCalypso scale chord)) chords)
@@ -139,7 +109,7 @@
 > tuplify3 :: [a] -> (a, a, a)
 > tuplify3 [x,y,z] = (x,y,z)
 > 
-> permuts :: [(TwinkleStar.Octave, TwinkleStar.Octave, TwinkleStar.Octave)]
+> permuts :: [(AutoComp.Octave, AutoComp.Octave, AutoComp.Octave)]
 > permuts = [(4,4,4),(4,4,5),(4,5,4),(4,5,5),(5,4,4),(5,4,5),(5,5,4),(5,5,5)]
 >
 > mkAllPossibleChords  :: Note -> Note -> [[(AbsNote, AbsNote, AbsNote)]]
@@ -149,7 +119,7 @@
 > mkPermuts (x,y,z) ((a,b,c):as) = ((x,a),(y,b),(z,c)) : mkPermuts (x,y,z) as
 > 
 > 
-> lookupDistance :: AbsNote -> [(([Note], TwinkleStar.Octave), Cost)] -> Maybe Cost
+> lookupDistance :: AbsNote -> [(([Note], AutoComp.Octave), Cost)] -> Maybe Cost
 > lookupDistance (_,_) [] = Nothing
 > lookupDistance (note, octave) (x:xs) =
 >   if note `elem` (getKeys x) && octave == (getOctave x)
@@ -158,7 +128,7 @@
 >   where getKeys x = fst $ fst x
 >         getOctave x = snd $ fst x
 >         
-> getPosition :: Note -> Note -> TwinkleStar.Octave -> Maybe Cost
+> getPosition :: Note -> Note -> AutoComp.Octave -> Maybe Cost
 > getPosition key note octave = lookupDistance (note, octave) noteDistances
 >   where genScale key  = concat $ take 2 $ repeat $ makeScale key
 >         values = [0,2,4,5,7,9,11,12,14,16,17,19,21,23]
@@ -198,13 +168,14 @@
 >   True -> getChord key prevChord x : mkVoices False key xs (getChord key ((concat $ mkAllPossibleChords key x) !! 0) x)
 >   False -> getChord key prevChord x : mkVoices False key xs prevChord
 > 
->   
-> chords key chordProgression = mkVoices True key chordProgression (getChord key (head $ concat $ mkAllPossibleChords key $ firstChord chordProgression) $ firstChord chordProgression)
-> firstChord chordProgression = head chordProgression
-> chordify :: (Note, TwinkleStar.Octave) -> Music
-> chordify (note, octave) = mapNote note (fromIntegral octave) qn v
 > autoVoice :: Note -> [Note] -> Music
-> autoVoice key chordProgression = foldr1 (:+:) $ map (\absNotes -> foldr1 (:=:) $ map chordify absNotes) $ map toList $ chords key chordProgression
+> autoVoice key chordProgression = foldr1 (:+:) $ map (\absNotes -> foldr1 (:=:) $ map chordify absNotes) $ map toList $ chords
+>   where
+>     chords :: [TriadChord]
+>     chords = mkVoices True key chordProgression (getChord key (head $ concat $ mkAllPossibleChords key $ firstChord) $ firstChord)
+>     firstChord = head chordProgression
+>     chordify :: (Note, AutoComp.Octave) -> Music
+>     chordify (note, octave) = mapNote note (fromIntegral octave) hn volume
 >
 > basic = Basic
 > calypso = Calypso
@@ -212,17 +183,5 @@
 > 
 > autoComp :: BassStyle -> Note -> [[Note]] -> Music
 > autoComp style key chordProgression = autoBass style key chordProgression :=: (autoVoice key $ concat $chordProgression)
-> 
-> twinkleBasic = mainVoice :=: autoComp basic C [[C,C],[F,C],[G,C],[G,C],[C,G],[C,G],[C,G],[C,G],[C,C],[F,C],[G,C],[G,C]]
-> 
-> --autoVoice :: Key -> ChordProgression -> Music
-> --autoVoice key (x:xs) = 
-> --  where
-> --    shiftedChordProgression :: ChordProgression
-> --    shiftedChordProgression chords = (tail chords) !! [head chords]
-> 
-> -- putting it all together:
-> twinkleStar = Instr "piano" (Tempo 3 (Phrase [Dyn SF] bassLine :=: mainVoice))
 
 \end{verbatim}}
-
