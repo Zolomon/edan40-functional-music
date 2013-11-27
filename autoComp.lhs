@@ -1,9 +1,12 @@
-                   EDAN40 - Functional Music
+EDAN40 - Functional Music
+-------------------------
 
-Date: 2013-11-27
-Authors: Johan Andersson, ada10jan
-         Bengt Ericsson, ada08ber
------------------------------------------------------------------
+Date: 2013-11-27  
+
+Authors:
+
+* Johan Andersson, ada10jan  
+* Bengt Ericsson, ada08ber  
 
 This is the solution for the second assignment of the course
 EDAN40, Functional Programming, at LTH in Lund by the authors
