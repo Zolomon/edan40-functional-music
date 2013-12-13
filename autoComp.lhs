@@ -27,14 +27,21 @@ import Data.List
 \end{code}
 
 The key specifies a set of notes, the base for the rest of the song. Chord and base notes
-that are generated are relative to the main key of the song. The chord progression is a sequence of chords which can be seen as guidelines for those who play the bass line and accompaniment for the song. The chords do not force extreme rules upon the musician, which means that the musician is allowed some artistic freedom while playing his part of the song, be it the bass line or the accompaniment.  
+that are generated are relative to the main key of the song. The chord progression is a sequence 
+of chords which can be seen as guidelines for those who play the bass line and accompaniment for 
+the song. The chords do not force extreme rules upon the musician, which means that the musician 
+is allowed some artistic freedom while playing his part of the song, be it the bass line or the 
+accompaniment.  
 
 Data types
 ----------
 
-To start our venture into the beautiful world of Haskell and music, we felt the need to start off with some definitions to make our journey a more joyful ride.
+To start our venture into the beautiful world of Haskell and music, we felt the need to start off 
+with some definitions to make our journey a more joyful ride.
 
-To make our code more fluent to read, we create a type alias for the PitchClass [1], e.g. C, Cs, Df, D etc, and call it a "Note", scales and keys are also represented as pitch classes.
+To make our code more fluent to read, we create a type alias for the PitchClass [1], e.g. C, Cs, Df, 
+D etc, and call it a "Note". The harmonic quality is represented as a string. Keys and chords are 
+represented as a PitchClass and a HarmonicQuality tuple.
 
 [1] http://en.wikipedia.org/wiki/Pitch_class
 
@@ -48,8 +55,6 @@ type Key = (PitchClass,HarmonicQuality)
 type Chord = (PitchClass,HarmonicQuality)
 
 \end{code}
-
-
  
 A progression of chords is a sequence of pitch classes, or notes, a list if we may.
 \begin{code}
@@ -64,31 +69,39 @@ An octave specifies the pitch of a Note and it is represented by an integer.
 type Octave = Int
 \end{code}
 
-To represent a playable note in the real world, we create a compound type of a Note and an Octave to represent an "absolute note".
+To represent a playable note in the real world, we create a compound type of a Note and an 
+Octave to represent an "absolute note".
 
 \begin{code}
 type AbsNote = (Note, Int)
 \end{code}
 
-When deciding what chord to play next, music theorists have concluded that the shortest distance between two chords will realize with the most profound result. The distance in semitones between two chord triads is represented by an integer value which we chose to call Cost. 
+When deciding what chord to play next, music theorists have concluded that the shortest distance 
+between two chords will realize with the most profound result. The distance in semitones between 
+two chord triads is represented by an integer value which we chose to call Cost. 
 
 \begin{code}
 type Cost = Int
 \end{code}
 
-When figuring out the distance mentioned above, we need to generate the proper scale for the chord which we then use as a lookup table. The position will be used to retrieve the proper note from this scale.
+When figuring out the distance mentioned above, we need to generate the proper scale for the chord 
+which we then use as a lookup table. The position will be used to retrieve the proper note from this 
+scale.
 
 \begin{code}
 type Position = Int
 \end{code}
 
-The accompaniment that we generate will be in the form of triplets of absolute notes which we call TriadChords.
+The accompaniment that we generate will be in the form of triplets of absolute notes which we call 
+TriadChords.
 
 \begin{code}
 type TriadChord = (AbsNote, AbsNote, AbsNote) 
 \end{code}
 
-There are many different common bass styles that are played by musicians all over the world, we have chosen to allow AutoComp to generate bass lines of three of these common ones; Basic bass, Calypso bass and Boogie bass.
+There are many different common bass styles that are played by musicians all over the world, we have 
+chosen to allow AutoComp to generate bass lines of three of these common ones; Basic bass, Calypso 
+bass and Boogie bass.
 
 \begin{code}
 data BassStyle = Basic | Calypso | Boogie deriving (Show, Eq, Ord)
@@ -104,7 +117,8 @@ We do not want to ruin the experience or ears of our listeners, so we set the vo
 volume = [Volume(80)]
 \end{code}
 
-We felt the need to construct lists from tuples, and vice versa, so we made some creative functions to help us out on the way.
+We felt the need to construct lists from tuples, and vice versa, so we made some creative 
+functions to help us out on the way.
 
 \begin{code}
 
@@ -116,7 +130,9 @@ tuplify3 [x,y,z] = (x,y,z)
 
 \end{code}
 
-Notes are quite interesting. Some of them can be used to represent the same pitch as another note, meaning that there is an overlap. To represent this we have a list of list of notes, the sublist will contain the notes that mutually represent the same note. 
+Notes are quite interesting. Some of them can be used to represent the same pitch as another note, meaning 
+that there is an overlap. To represent this we have a list of list of notes, the sublist will contain the 
+notes that mutually represent the same note. 
 
 \begin{code}
 
@@ -125,7 +141,8 @@ notes =  concat $ replicate 3 $ [[C,Bs],[Cs,Df],[D],[Ds,Ef],[E,Ff],[Es,F],[Fs,Gf
 
 \end{code}
 
-Haskore is a cool module! To be able to play our music, we have to convert our definition of a note to Haskore's, this is accomplished by 'mapNote' which looks up a Note and returns playable Music.
+Haskore is a cool module! To be able to play our music, we have to convert our definition of a note to 
+Haskore's, this is accomplished by 'mapNote' which looks up a Note and returns playable Music.
 
 \begin{code}
 
@@ -172,11 +189,9 @@ findPos list elt = head $ map fst $ filter ((elt `elem`) . snd) $ zip [0..] list
 
 \end{code}
 
-To construct a scale we use the major scale which describes the semitone intervals between the notes in the scale.
+To construct a scale we perform a lookup based on the harmonic quality in the key. 
 
 \begin{code}
-        
-
 makeScale :: Key -> [[Note]]
 makeScale (note, hq) = 
 	map (notes !! ) $ map ((findPos notes note) + ) (scaleIntervals hq) 
@@ -187,22 +202,20 @@ scaleIntervals "Major"	 	= scaleIntervals "Ionian"
 scaleIntervals "Dorian"		= [0, 2, 3, 5, 7, 9, 10]	
 scaleIntervals "Phrygian" 	= [0, 1, 3, 5, 7, 8, 10]	
 scaleIntervals "Lydian"		= [0, 2, 4, 6, 7, 9, 11]	
-scaleIntervals "Mixolydian" = [0, 2, 4, 5, 7, 9, 10]		
+scaleIntervals "Mixolydian"     = [0, 2, 4, 5, 7, 9, 10]		
 scaleIntervals "Aeolian" 	= [0, 2, 3, 5, 7, 8, 10] -- "minor"
 scaleIntervals "Minor"	 	= scaleIntervals "Aeolian"
-	
 \end{code}
 
 Given a scale and a chord we can find where the chord starts in its scale.
 
 \begin{code}
- 
 startPositionInScale :: Key -> Note -> Position
 startPositionInScale key note = findPos (concat $ replicate 3 $ makeScale key) note
-
 \end{code}
 
-Playing the correct chords for the bass and accompaniment will depend on the right chord scale which we construct here with the ability to retrieve a note given a position in the chosen scale.
+Playing the correct chords for the bass and accompaniment will depend on the right chord scale which we 
+construct here with the ability to retrieve a note given a position in the chosen scale.
 
 \begin{code}
  
@@ -220,7 +233,8 @@ getNoteFromScale key note pos =
 Bass Construction
 -----------------
 
-To construct playable music we have another utility function which creates playable music when given the length to play, the scale, the chord and its position in the chord scale. 
+To construct playable music we have another utility function which creates playable music when given the 
+length to play, the scale, the chord and its position in the chord scale. 
 
 \begin{code}
  
@@ -236,7 +250,9 @@ bassNote scale chord pos
 
 \end{code}
 
-Basic bass works by playing two half notes in each bar, the chords specify which notes to play. If the chords are not the same for the whole bar, we play the first note in the chord scale for the two different chords, otherwise we play the first and the fifth notes in the same chord scale.
+Basic bass works by playing two half notes in each bar, the chords specify which notes to play. 
+If the chords are not the same for the whole bar, we play the first note in the chord scale for 
+the two different chords, otherwise we play the first and the fifth notes in the same chord scale.
 
 \begin{code}
  
@@ -248,7 +264,9 @@ basicBass scale chords = foldr1 (:+:) $ zipBass scale chords
 
 \end{code}
 
-The Calypso bass line is similar to the basic bass line. Here we insert a quarter note pause and change the length of the two half notes to eighth notes, this is repeated twice during one bar. The two played notes are from position 1 and 3 in the scale instead of 1 and 5.
+The Calypso bass line is similar to the basic bass line. Here we insert a quarter note pause and 
+change the length of the two half notes to eighth notes, this is repeated twice during one bar. 
+The two played notes are from position 1 and 3 in the scale instead of 1 and 5.
 
 \begin{code}
  
@@ -258,7 +276,8 @@ calypsoBass scale chords = foldr1 (:+:) (map (\chord -> qnr :+: foldr1 (:+:) (zi
 
 \end{code}
 
-The boogie bass will play eight eighth notes for each bar, choosing the notes with positions 1, 5, 6 and 5 from the scale for the current chord (a bar is represented by two sequential chords).
+The boogie bass will play eight eighth notes for each bar, choosing the notes with positions 1, 5, 
+6 and 5 from the scale for the current chord (a bar is represented by two sequential chords).
 
 \begin{code}
  
@@ -267,7 +286,8 @@ boogieBass scale chords = foldr1 (:+:) (concat $ map (\chord -> map (\pos -> mak
 
 \end{code}
 
-Here is a smart associative table that maps the different bass styles to one of the generative functions above. 
+Here is a smart associative table that maps the different bass styles to one of the generative 
+functions above. 
 
 \begin{code}
  
@@ -278,7 +298,8 @@ bassTable = [(Basic,   basicBass)
 
 \end{code}
 
-We have now reached the end of our journey into the bass line. Given a specific style, a key and a set of chords, two chords per bar, we will generate the magnificent bass line.
+We have now reached the end of our journey into the bass line. Given a specific style, a key and a set 
+of chords, two chords per bar, we will generate the magnificent bass line.
 
 \begin{code}
  
@@ -291,8 +312,9 @@ autoBass style key chords = foldr1 (:+:) $ map (bassLookup style key) chords
 
 Chord Voice Consruction
 -----------------------
-
-The construction of chord triads is hard business, here we construct a list of notes that represents the triad given our scale and chord.
+The construction of chord triads is hard business, here we construct a list of notes that represents the 
+triad given our scale and chord. First we check if the chord is in the current key. If it isn't, then we 
+temporarily change the key of the song to that of the chord.
 
 \begin{code}
 
@@ -302,6 +324,13 @@ makeChord scale chord
 		map (getNoteFromScale scale $ fst chord) [1, 3, 5]
 	| otherwise = map (getNoteFromScale chord $ fst chord) [1, 3, 5]
 
+\end{code}
+
+A chord triad is in key if the root is in the scale, and the third of the chord matches that of the scale 
+at that position.
+
+\begin{code}
+
 chordInKey :: Key -> Chord -> Bool
 chordInKey key (chord, chq) = 
 	(noteInKey key chord) && (hasCorrectThird (snd key) pos chq) 
@@ -309,6 +338,12 @@ chordInKey key (chord, chq) =
 			  
 noteInKey ::  Key -> Note -> Bool
 noteInKey key note = note `elem` (concat $ makeScale key)
+
+\end{code}
+If we select a root note anywhere in a scale, and then move two positions up in the scale, we reach the 
+third. There are major and minor thirds. The function "hasCorrectThird" takes a scale, a position in that 
+scale and a HarmonicQuality and checks if the thirds match.
+\begin{code}
 
 -- Kollar om ackordets ters stämmer med skalan
 hasCorrectThird :: HarmonicQuality -> Position -> HarmonicQuality -> Bool
@@ -327,7 +362,10 @@ hasCorrectThird _ _ _= False
 
 \end{code}
 
-To find the closest chord given the previous chord we had to embark on a long quest which started off with calculating all possible inversions of a chord on a scale. To do this we created a list of all octave permutations allowed in AutoComp. Then we construct a list of all possible tone permutations taking only the allowed octaves into account.
+To find the closest chord given the previous chord we had to embark on a long quest which started off 
+with calculating all possible inversions of a chord on a scale. To do this we created a list of all 
+octave permutations allowed in AutoComp. Then we construct a list of all possible tone permutations 
+taking only the allowed octaves into account.
 
 \begin{code}
  
@@ -342,7 +380,8 @@ makeAllPossibleChords key chord =  map (\x -> makeChordPermutations (tuplify3 x)
 
 \end{code}
 
-Given an absolute note and an associative table, tying a list of notes and an octave to a cost, we can lookup the distance and get a cost if the absolute note exist in the table, otherwise Nothing is returned.
+Given an absolute note and an associative table, tying a list of notes and an octave to a cost, we can 
+lookup the distance and get a cost if the absolute note exist in the table, otherwise Nothing is returned.
 
 \begin{code}
  
@@ -368,7 +407,8 @@ getCost (n1,o1) (n2,o2) = abs $ (absPitch (n1,o1) - absPitch (n2,o2))
 
 \end{code}
 
-To calculate the cost of chords we apply the help of some helper functions, mainly to juggle our triads into different shapes and forms for conveniency.
+To calculate the cost of chords we apply the help of some helper functions, mainly to juggle our 
+triads into different shapes and forms for conveniency.
  
 \begin{code}
  
@@ -392,7 +432,8 @@ costOfChords key prevChord chord = zip (listOfTriplets key chord)
 
 \end{code}
 
-The closest chord to another chord is done by searching for the least cost in the associative table created above.
+The closest chord to another chord is done by searching for the least cost in the associative 
+table created above.
 
 \begin{code}
  
@@ -414,7 +455,9 @@ getChord key prevChord chord = closestChord (listOfChords key prevChord chord) (
 
 \end{code}
 
-Now that we are able to artistically select a beautiful chord given another, we can generate a list of chords for the whole song given a value that specifies whether we are at the beginning of the song, the song's key, and the chord progression of the song and a starting chord.
+Now that we are able to artistically select a beautiful chord given another, we can generate a list of 
+chords for the whole song given a value that specifies whether we are at the beginning of the song, the 
+song's key, and the chord progression of the song and a starting chord.
 
 \begin{code}
  
@@ -426,7 +469,11 @@ mkVoices isFirst key (x:xs) prevChord = case isFirst of
 
 \end{code}
 
-And alas, we have reached the end of our last venture! Fully equipped, we are now able to generate philosophical music given a key and a chord progression. This is done by taking the chord progression, mapping it to lists, which maps a fold over the function that converts the absolute notes into playable music, to make the music play in parallell. Then we perform another fold that sequences the chords into the supreme accompaniment.
+And alas, we have reached the end of our last venture! Fully equipped, we are now able to generate 
+philosophical music given a key and a chord progression. This is done by taking the chord progression, 
+mapping it to lists, which maps a fold over the function that converts the absolute notes into playable 
+music, to make the music play in parallell. Then we perform another fold that sequences the chords into 
+the supreme accompaniment.
 
 \begin{code}
  
@@ -445,7 +492,8 @@ boogie = Boogie
 
 \end{code}
 
-We lied, here we actually tie up the last knot of our journey! autoComp will generate the bass line and accompaniment for the given bass style, key and chord progression.
+We lied, here we actually tie up the last knot of our journey! autoComp will generate the bass line and 
+accompaniment for the given bass style, key and chord progression.
 
 \begin{code}
  
