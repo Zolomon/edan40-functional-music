@@ -58,9 +58,11 @@ type Chord = (PitchClass,HarmonicQuality)
  
 A progression of chords is a sequence of pitch classes, or notes, a list if we may.
 \begin{code}
-type SimpleChord = [Note] -- Oklart vad denna representerar. Nothing to see here...
 
 type ChordProgression = [Chord]
+
+type SimpleChord = [Note] 
+
 \end{code}
 
 An octave specifies the pitch of a Note and it is represented by an integer.
@@ -345,7 +347,6 @@ third. There are major and minor thirds. The function "hasCorrectThird" takes a 
 scale and a HarmonicQuality and checks if the thirds match.
 \begin{code}
 
--- Kollar om ackordets ters stämmer med skalan
 hasCorrectThird :: HarmonicQuality -> Position -> HarmonicQuality -> Bool
 hasCorrectThird "Ionian" pos chordHQ = 
 	(["Major", "Minor", "Minor", "Major", "Major", "Minor", "Minor"] !! pos) == chordHQ
