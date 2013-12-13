@@ -28,13 +28,14 @@ v3 = v3a :+: v3b
 
 mainVoice = v1 :+: v2 :+: v3 :+: v3 :+: v1 :+: v2
 
-twinkleChords = [[C,C],[F,C],[G,C],[G,C],[C,G],[C,G],[C,G],[C,G],[C,C],[F,C],[G,C],[G,C]]
+twinkleChords :: [[Chord]]
+twinkleChords = [[(C, "Major"),(C, "Major")],[(F, "Major"),(C, "Major")],[(G, "Major"),(C, "Major")],[(G, "Major"),(C, "Major")],[(C, "Major"),(G, "Major")],[(C, "Major"),(G, "Major")],[(C, "Major"),(G, "Major")],[(C, "Major"),(G, "Major")],[(C, "Major"),(C, "Major")],[(F, "Major"),(C, "Major")],[(G, "Major"),(C, "Major")],[(G, "Major"),(C, "Major")]]
 
-twinkleBasic = (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp basic C twinkleChords))))
+twinkleBasic = (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "piano" (Tempo 3 (Phrase [Dyn SF] (autoComp basic (C,"Ionian") twinkleChords))))
 
-twinkleCalypso = (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp calypso C twinkleChords))))
+twinkleCalypso = (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "piano" (Tempo 3 (Phrase [Dyn SF] (autoComp calypso (C,"Ionian") twinkleChords))))
 
-twinkleBoogie =  (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp boogie C twinkleChords))))
+twinkleBoogie =  (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "piano" (Tempo 3 (Phrase [Dyn SF] (autoComp boogie (C,"Ionian") twinkleChords))))
 
 
 

@@ -27,10 +27,11 @@ bar8 = lmap vol [ds 4 qn, g 4 den, as 4 sn, ds 4 hn]
 
 mainVoice = bar1 :+: bar2 :+: bar3 :+: bar4 :+: bar5 :+: bar6 :+: bar7 :+: bar8
 
-chords =  [[Ds,Ds],[Ds,Ds],[Ds,Ds],[As,As],[Gs,Gs],[Ds,Ds],[As,As],[Ds,Ds]]
+chords :: [[Chord]]
+chords =  [[(Ds,"Major"),(Ds,"Major")],[(Ds,"Major"),(Ds,"Major")],[(Ds,"Major"),(Ds,"Major")],[(As,"Major"),(As,"Major")],[(Gs,"Major"),(Gs,"Major")],[(Ds,"Major"),(Ds,"Major")],[(As,"Major"),(As,"Major")],[(Ds,"Major"),(Ds,"Major")]]
 
-jagMaHaLevaBasic = (Instr "marimba" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp basic Ef chords))))
-jagMaHaLevaCalypso = (Instr "marimba" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp calypso Ef chords))))
-jagMaHaLevaBoogie = (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp boogie Ef chords))))
+jagMaHaLevaBasic = (Instr "marimba" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp basic (Ef, "Major") chords))))
+jagMaHaLevaCalypso = (Instr "marimba" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp calypso (Ef, "Major") chords))))
+jagMaHaLevaBoogie = (Instr "piano" (Tempo 3 (Phrase [Dyn SF] mainVoice))) :=: (Instr "xylo" (Tempo 3 (Phrase [Dyn SF] (autoComp boogie (Ef, "Major") chords))))
 
 
